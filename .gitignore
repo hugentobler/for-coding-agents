@@ -1,0 +1,9 @@
+# Ignore cloned git repositories but preserve folder names
+resources/svelte/*
+!resources/svelte/.gitkeep
+resources/svelte.dev/*
+!resources/svelte.dev/.gitkeep
+resources/kit/*
+!resources/kit/.gitkeep
+resources/opencode/*
+!resources/opencode/.gitkeep
