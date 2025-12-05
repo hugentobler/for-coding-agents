@@ -1,19 +1,23 @@
 #!/usr/bin/env node
 
+/**
+ * Parallel AI Search Tool
+ * API Documentation: https://docs.parallel.ai/
+ * Requires: PARALLEL_API_KEY environment variable
+ */
+
 const args = process.argv.slice(2);
 
 if (args.length === 0 || args[0] === "--help") {
-    console.log("Usage: tool-parallel-search.js <query> [options]");
-    console.log("\nOptions:");
-    console.log("  --mode [basic|advanced]  Search mode (default: basic)");
-    console.log("                           basic: Fast, general search");
-    console.log("                           advanced: Deep research with follow-up queries");
-    console.log("  --objective TEXT         Search objective/goal for context");
-    console.log("  --max N                  Maximum results (default: 10)");
+    console.log("Usage: tool-parallel-search.js --objective <text>");
+    console.log("   or: tool-parallel-search.js --search-queries <q1,q2>");
+    console.log("\nSearch Strategy (choose one):");
+    console.log("  --objective TEXT         Natural language: what to find, guidance on sources/freshness");
+    console.log("                           (RECOMMENDED - Parallel AI prefers context)");
+    console.log("  --search-queries Q1,Q2   Keyword queries with operators for technical precision");
     console.log("\nExamples:");
-    console.log('  tool-parallel-search.js "quantum computing"');
-    console.log('  tool-parallel-search.js "AI research" --mode advanced --max 15');
-    console.log('  tool-parallel-search.js "machine learning" --objective "find latest techniques"');
+    console.log('  tool-parallel-search.js --objective "latest AI breakthroughs in 2024, prefer research papers"');
+    console.log('  tool-parallel-search.js --search-queries "SvelteKit +SSR +performance","svelte ssr benchmark"');
     process.exit(0);
 }
 
@@ -26,45 +30,40 @@ if (!apiKey) {
 }
 
 // Parse arguments
-let query = "";
 const options = {
-    mode: "one-shot",  // API expects 'one-shot' or 'agentic'
-    max_results: 10,
+    mode: "agentic",  // Default to agentic (deep research). 'one-shot' available but not exposed.
+    max_results: 5,   // Fixed to 5 for token efficiency
 };
 
 for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     
-    if (arg === "--mode") {
-        const mode = args[++i];
-        if (mode === "basic" || mode === "one-shot") {
-            options.mode = "one-shot";
-        } else if (mode === "advanced" || mode === "agentic") {
-            options.mode = "agentic";
-        } else {
-            console.error(`Error: Invalid mode "${mode}". Use "basic" or "advanced"`);
-            process.exit(1);
-        }
-    } else if (arg === "--objective") {
+    if (arg === "--objective") {
         options.objective = args[++i];
-    } else if (arg === "--max") {
-        options.max_results = parseInt(args[++i]) || 10;
-    } else if (!arg.startsWith("--")) {
-        query += (query ? " " : "") + arg;
+    } else if (arg === "--search-queries") {
+        // Split comma-separated queries into array
+        options.search_queries = args[++i].split(",").map(q => q.trim());
     }
 }
 
-if (!query) {
-    console.error("Error: No query provided");
+// API requires either 'objective' or 'search_queries'
+if (!options.objective && !options.search_queries) {
+    console.error("Error: Must provide --objective or --search-queries");
+    console.error("Run with --help for usage");
     process.exit(1);
 }
 
-// Prepare request - API requires either 'objective' or 'search_queries'
+// Prepare request
 const requestBody = {
-    objective: options.objective || query,  // Use objective if provided, otherwise use query as objective
     mode: options.mode,
     max_results: options.max_results,
 };
+
+if (options.objective) {
+    requestBody.objective = options.objective;
+} else {
+    requestBody.search_queries = options.search_queries;
+}
 
 try {
     const response = await fetch("https://api.parallel.ai/v1beta/search", {
@@ -89,22 +88,30 @@ try {
         process.exit(0);
     }
     
-    // Token-efficient output: only essential info
-    console.log(`Found ${data.results.length} results (Search ID: ${data.search_id}):\n`);
+    console.log(`Found ${data.results.length} results (Search ID: ${data.search_id})\n`);
+    console.log("─".repeat(80));
     
     data.results.forEach((result, i) => {
-        console.log(`${i + 1}. ${result.title || "Untitled"}`);
-        console.log(`   URL: ${result.url}`);
+        console.log();
+        console.log(`Result ${i + 1}: ${result.title || "Untitled"}`);
+        console.log(`URL: ${result.url}`);
         if (result.publish_date) {
-            console.log(`   Published: ${result.publish_date}`);
-        }
-        if (result.excerpts && result.excerpts.length > 0) {
-            console.log(`   Excerpts:`);
-            result.excerpts.forEach((excerpt, idx) => {
-                console.log(`     ${idx + 1}. ${excerpt}`);
-            });
+            console.log(`Published: ${result.publish_date}`);
         }
         console.log();
+        
+        if (result.excerpts && result.excerpts.length > 0) {
+            console.log("Excerpts:");
+            console.log();
+            result.excerpts.forEach((excerpt) => {
+                console.log(excerpt);
+                console.log();
+            });
+        }
+        
+        if (i < data.results.length - 1) {
+            console.log("─".repeat(80));
+        }
     });
     
 } catch (error) {

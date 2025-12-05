@@ -21,7 +21,8 @@ cp .env.example .env
 nano .env  # Add your actual API keys
 ```
 
-Get your API key from: https://parallel.ai
+Get your API key from: https://parallel.ai  
+**API Documentation:** https://docs.parallel.ai/
 
 Then reload your shell or run setup again:
 
@@ -33,19 +34,22 @@ Then reload your shell or run setup again:
 
 ## How to Invoke Tools
 
-**CRITICAL FOR AGENTS**: These are executable scripts in your PATH with `tool-` prefix. When invoking via the Bash tool:
+**CRITICAL FOR AGENTS**: These are executable scripts in your PATH with `tool-` prefix. 
+
+**Quote handling:** Always use double quotes around argument values that contain spaces or special characters.
 
 ✓ **CORRECT:**
 ```bash
-tool-parallel-search.js "quantum computing"
-tool-parallel-extract.js "https://example.com"
+tool-parallel-search.js --objective "quantum computing applications"
+tool-parallel-search.js --search-queries "SvelteKit +SSR","performance optimization"
 ```
 
 ✗ **INCORRECT:**
 ```bash
-node parallel-search.js           # Don't use 'node' prefix
-./parallel-search.js              # Don't use './' prefix
-parallel-search.js                # Missing 'tool-' prefix
+tool-parallel-search.js --objective quantum computing  # Missing quotes - breaks on spaces
+node tool-parallel-search.js --objective "test"        # Don't use 'node' prefix
+./parallel-search.js --objective "test"                # Don't use './' prefix
+parallel-search.js --objective "test"                  # Missing 'tool-' prefix
 ```
 
 ---
@@ -54,48 +58,68 @@ parallel-search.js                # Missing 'tool-' prefix
 
 ### tool-parallel-search.js
 
-Search the web using Parallel Search API. Returns URLs, titles, publish dates, and relevant excerpts.
+Deep web research using Parallel Search API (agentic mode). Returns up to 5 results with URLs, titles, publish dates, and relevant excerpts.
 
 **Usage:**
 ```bash
-tool-parallel-search.js "your query"
-tool-parallel-search.js "your query" --max 15
-tool-parallel-search.js "your query" --mode advanced
-tool-parallel-search.js "your query" --objective "find latest research"
+tool-parallel-search.js --objective <text>
+tool-parallel-search.js --search-queries <q1,q2>
 ```
 
-**Options:**
-- `--mode [basic|advanced]`: Search mode (default: basic)
-  - `basic`: Fast, general search (maps to API's 'one-shot')
-  - `advanced`: Deep research with follow-up queries (maps to API's 'agentic')
-- `--objective TEXT`: Search objective/goal for additional context
-- `--max N`: Maximum number of results (default: 10)
+**Search Strategies (choose one):**
+
+| Strategy | When to Use | Example |
+|----------|-------------|---------|
+| **--objective** ⭐ | Most cases: exploratory research, latest info | `--objective "latest AI breakthroughs, prefer research papers"` |
+| **--search-queries** | Technical precision, exact matches | `--search-queries "SvelteKit +SSR","svelte benchmark"` |
+
+**Arguments:**
+- `--objective TEXT`: Natural language description with guidance (RECOMMENDED - Parallel AI prefers context)
+- `--search-queries Q1,Q2`: Comma-separated keyword queries with search operators
 
 **Examples:**
 ```bash
-# Quick search
-tool-parallel-search.js "quantum computing"
+# Objective with guidance (recommended)
+tool-parallel-search.js --objective "compare Python web frameworks, prefer 2024 benchmarks"
 
-# Deep research with more results
-tool-parallel-search.js "AI breakthroughs" --mode advanced --max 20
-
-# Targeted search with objective
-tool-parallel-search.js "machine learning frameworks" --objective "compare performance and ease of use"
+# Technical keyword search
+tool-parallel-search.js --search-queries "react hooks +performance -class","react 18 concurrent"
 ```
 
-**Token Efficiency Tips:**
-- Start with `basic` mode (default) for quick searches
-- Use `advanced` mode sparingly for deeper research
-- Limit results with `--max` (default 10 is usually sufficient)
-- Add `--objective` for more focused results
+**For agents:** Use `--objective` by default. It allows you to provide context, preferred sources, and freshness requirements.
 
 ---
 
 ### tool-parallel-extract.js
 
-*Coming soon*
-
 Extract content from web pages using Parallel Extract API.
+
+**Usage:**
+```bash
+tool-parallel-extract.js <url1> [url2...] [--objective <text>]
+```
+
+**Behavior:**
+- **Without --objective**: Returns full page content
+- **With --objective**: Returns only relevant excerpts
+
+**Arguments:**
+- `url1 url2...`: One or more URLs (required)
+- `--objective TEXT`: Optional guide for what to extract
+
+**Examples:**
+```bash
+# Extract full content
+tool-parallel-extract.js "https://docs.parallel.ai/api"
+
+# Extract from multiple pages
+tool-parallel-extract.js "https://url1.com" "https://url2.com"
+
+# Extract specific information
+tool-parallel-extract.js "https://example.com/pricing" --objective "extract pricing tiers and features"
+```
+
+**For agents:** Use `--objective` when you only need specific information to save tokens.
 
 ---
 

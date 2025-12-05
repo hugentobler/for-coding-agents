@@ -1,17 +1,20 @@
 ---
-description: Extract content from URLs (coming soon - accepts: URL or multiple URLs)
+description: Extract content from one or more URLs - add objective for targeted excerpts, omit for full content
 ---
 
-Extract content from: **$@**
+User input: **$@**
 
-**Arguments should be:** One or more URLs separated by spaces
+Parse input:
+1. **URLs** (required) - one or more
+2. **Objective text** (optional) - any non-URL text
 
-This tool is planned but not yet implemented.
-
-Expected usage:
+Execute:
 ```bash
-tool-parallel-extract.js "https://example.com"
-tool-parallel-extract.js "https://url1.com" "https://url2.com"
+# URLs only → full content
+tool-parallel-extract.js "URL1" ["URL2"...]
+
+# URLs + objective → targeted excerpts (saves tokens)
+tool-parallel-extract.js "URL1" ["URL2"...] --objective "objective text"
 ```
 
-Will extract clean text content from URLs using Parallel AI's extract API.
+**Display the tool's output as-is.** Do not summarize or reformat the extracted content.

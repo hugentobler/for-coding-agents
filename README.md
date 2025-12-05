@@ -8,8 +8,8 @@ A centralized repository providing tools, resources, and configurations for AI c
 
 ### 1. CLI Tools (`tools/`)
 Global command-line tools that agents can invoke from anywhere:
-- **parallel-search** - Web search using Parallel AI API
-- More tools as needed...
+- **parallel-search** - Web search using Parallel AI (agentic mode, 5 results)
+- **parallel-extract** - Extract content from web pages (full or targeted excerpts)
 
 Tools are installed to `~/.local/bin` with wrapper scripts that inject environment variables, requiring zero boilerplate in tool code.
 
@@ -63,8 +63,9 @@ git clone https://github.com/sveltejs/kit.git
 
 **For CLI tools:**
 ```bash
-tool-parallel-search.js "quantum computing"
-tool-parallel-search.js "AI research" --mode advanced --max 15
+tool-parallel-search.js --objective "quantum computing applications"
+tool-parallel-extract.js "https://example.com"
+tool-parallel-extract.js "https://example.com" --objective "extract pricing"
 ```
 
 **For agents (Pi example):**
