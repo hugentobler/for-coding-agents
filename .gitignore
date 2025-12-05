@@ -1,3 +1,12 @@
+# macOS system files
+.DS_Store
+
+# Environment variables (contains API keys)
+.env
+
+# Backup files from sed
+*.bak
+
 # Ignore cloned git repositories but preserve folder names
 resources/svelte/*
 !resources/svelte/.gitkeep
